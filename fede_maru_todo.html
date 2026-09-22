@@ -11,7 +11,7 @@
   }
 
   :root {
-    --bg: #f4f6f8;
+    --bg: #ffffff;
     --panel: #ffffff; 
     --text: #18212b;
     --muted: #74808c;
@@ -377,7 +377,8 @@
   /* TÍTULO FIJO ARRIBA */
   .content-header {
     flex-shrink: 0;
-    margin: 0 0 10px 0;
+    margin: 0 0 10px 0; 
+     border-bottom: 3px solid var(--border);
   }
 
   h1 {
@@ -387,7 +388,8 @@
   }
 
   .counter {
-    margin-top: 3px;
+    margin-top: 2px;
+    margin-bottom: 2px;
     font-size: 12px;
   }
 
@@ -697,10 +699,10 @@ const firebaseConfig = {
 
     function render() {
       const sorted = sortTasks(tasks);
+const sortedDone = sorted.filter(x => !x.completedBy);
 
-      counterEl.textContent =
-        `${sorted.length} ${sorted.length === 1 ? "tarea" : "tareas"}`;
-
+counterEl.textContent =
+  `  ${sortedDone.length} tareas  por hacer`;
       tasksEl.innerHTML = "";
 
       if (!sorted.length) {
