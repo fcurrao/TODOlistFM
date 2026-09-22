@@ -5,304 +5,408 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fede & Maru — To Do</title>
 
-  <style>
-    * { box-sizing: border-box; }
+<style>
+  * {
+    box-sizing: border-box;
+  }
 
-    :root {
-      --bg: #f4f6f8;
-      --panel: #ffffff;
-      --text: #18212b;
-      --muted: #74808c;
-      --border: #e3e7eb;
-      --priority: #fff3cd;
-      --priority-border: #f0c75e;
-      --fede: #dceeff;
-      --fede-border: #4b9bea;
-      --maru: #ffe0e0;
-      --maru-border: #ef6a6a;
-      --shadow: 0 10px 30px rgba(20, 30, 40, .08);
-    }
+  :root {
+    --bg: #f4f6f8;
+    --panel: #ffffff;
+    --text: #18212b;
+    --muted: #74808c;
+    --border: #e3e7eb;
+    --priority: #fff3cd;
+    --priority-border: #f0c75e;
+    --fede: #dceeff;
+    --fede-border: #4b9bea;
+    --maru: #ffe0e0;
+    --maru-border: #ef6a6a;
+    --shadow: 0 10px 30px rgba(20, 30, 40, .08);
+  }
 
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .app {
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    gap:38px;
+  }
+
+  /* ============================================================
+     SIDEBAR
+     ============================================================ */
+
+  .sidebar {
+    width: 260px;
+    height: 100vh;
+    flex-shrink: 0;
+    padding: 24px 18px;
+    background: #111820;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .logo {
+    font-size: 21px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .badgeBig {
+    font-size: 28px;
+    padding: 0;
+    margin: 0;
+    position: relative;
+  }
+
+  .subtitle {
+    color: #9ca8b4;
+    font-size: 12px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+
+  .task-composer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .task-input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 16px;
+    background: #fff;
+    color: #18212b;
+    -webkit-appearance: none;
+  }
+
+  .add-btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    background: #fff;
+    color: #111820;
+    transition: .15s;
+  }
+
+  .add-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .status {
+    margin-top: auto;
+    font-size: 11px;
+    color: #9ca8b4;
+    line-height: 1.5;
+  }
+
+  /* ============================================================
+     CONTENT
+     ============================================================ */
+
+  .content {
+    flex: 1;
+    min-width: 0;
+    height: 100vh;
+    padding: 30px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+  }
+
+  .counter {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* ============================================================
+     TASKS
+     ============================================================ */
+
+  .tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    max-width: 1000px;
+    overflow-y: auto;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .task {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 5px solid transparent;
+    border-radius: 12px;
+    padding: 15px 17px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(20, 30, 40, .03);
+    transition: transform .12s, box-shadow .12s;
+  }
+
+  .task:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+
+  .task.priority {
+    background: var(--priority);
+    border-color: var(--priority-border);
+    border-left-color: #e2a900;
+  }
+
+  .task.done-fede {
+    background: var(--fede);
+    border-color: var(--fede-border);
+    border-left-color: #1877d2;
+    opacity: .82;
+  }
+
+  .task.done-maru {
+    background: var(--maru);
+    border-color: var(--maru-border);
+    border-left-color: #d83b3b;
+    opacity: .82;
+  }
+
+  .task-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .task-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    border-radius: 999px;
+    padding: 5px 8px;
+    background: rgba(0, 0, 0, .06);
+  }
+
+  .empty {
+    color: var(--muted);
+    padding: 50px 10px;
+    text-align: center;
+  }
+
+  /* ============================================================
+     MODAL
+     ============================================================ */
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 20px;
+  }
+
+  .modal-backdrop.open {
+    display: flex;
+  }
+
+  .modal {
+    width: min(420px, 100%);
+    background: white;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, .25);
+  }
+
+  .modal h2 {
+    margin: 0 0 7px;
+    font-size: 19px;
+  }
+
+  .modal-task {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 20px;
+    word-break: break-word;
+  }
+
+  .modal-buttons {
+    display: grid;
+    gap: 9px;
+  }
+
+  .modal button {
+    border: 1px solid var(--border);
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 13px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .modal button:hover {
+    background: #eef1f4;
+  }
+
+  .modal .priority-btn {
+    background: #fff5d6;
+    border-color: #efca63;
+  }
+
+  .modal .fede-btn {
+    background: #e2f1ff;
+    border-color: #77b4eb;
+  }
+
+  .modal .maru-btn {
+    background: #ffe7e7;
+    border-color: #ef8b8b;
+  }
+
+  .modal .delete-btn {
+    color: #c62828;
+    background: #fff;
+    border-color: #efb0b0;
+  }
+
+  .close-btn {
+    margin-top: 13px;
+    width: 100%;
+  }
+
+  /* ============================================================
+     MOBILE
+     ============================================================ */
+
+  @media (max-width: 800px) {
     body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      min-height: 100dvh;
     }
 
     .app {
-      height: 100vh;
-      display: flex;
+      min-height: 100dvh;
+      height: 100dvh;
       overflow: hidden;
-    }
-
-    /* 15% */
-    .sidebar {
-      width: 15%;
-      min-width: 220px;
-      padding: 24px 18px;
-      background: #111820;
-      color: white;
       display: flex;
       flex-direction: column;
-      gap: 16px;
     }
 
-    .logo {
-      font-size: 21px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .badgeBig {
-       font-size: 28px;
-    padding: 0px;
-    margin: 0px; 
-    position: relative;
-    }
-
-    .subtitle {
-      color: #9ca8b4;
-      font-size: 12px;
-      line-height: 1.4;
-      margin-bottom: 12px;
-    }
-
-    .task-input {
-      width: 100%;
-      border: 0;
-      outline: none;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 14px;
-      background: #fff;
-      color: #18212b;
-    }
-
-    .add-btn {
-      border: 0;
-      border-radius: 10px;
-      padding: 12px;
-      cursor: pointer;
-      font-weight: 700;
-      background: #fff;
-      color: #111820;
-      transition: .15s;
-    }
-
-    .add-btn:hover { transform: translateY(-1px); }
-
-    .status {
-      margin-top: auto;
-      font-size: 11px;
-      color: #9ca8b4;
-      line-height: 1.5;
-    }
-
-    /* 85% */
+    /* Contenido arriba */
     .content {
-      width: 85%;
-      padding: 30px;
-      overflow-y: auto;
+      order: 1;
+      width: 100%;
+      height: calc(100dvh - 220px);
+      min-height: 0;
+      padding: 20px;
+      overflow: hidden;
+      flex: none;
+    }
+
+    /* Sidebar abajo, tamaño fijo */
+    .sidebar {
+      order: 2;
+      position: static;
+      width: 100%;
+      height: 220px;
+      min-width: 0;
+      flex-shrink: 0;
+      padding: 15px 18px;
     }
 
     .content-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 22px;
+      margin-bottom: 16px;
     }
 
     h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    .counter {
-      color: var(--muted);
-      font-size: 13px;
+      font-size: 24px;
     }
 
     .tasks {
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-      max-width: 1000px;
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .task {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-left: 5px solid transparent;
-      border-radius: 12px;
-      padding: 15px 17px;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(20, 30, 40, .03);
-      transition: transform .12s, box-shadow .12s;
-    }
-
-    .task:hover {
-      transform: translateY(-1px);
-      box-shadow: var(--shadow);
-    }
-
-    .task.priority {
-      background: var(--priority);
-      border-color: var(--priority-border);
-      border-left-color: #e2a900;
-    }
-
-    .task.done-fede {
-      background: var(--fede);
-      border-color: var(--fede-border);
-      border-left-color: #1877d2;
-      opacity: .82;
-    }
-
-    .task.done-maru {
-      background: var(--maru);
-      border-color: var(--maru-border);
-      border-left-color: #d83b3b;
-      opacity: .82;
+      padding: 13px 14px;
     }
 
     .task-main {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
     .task-title {
-      flex: 1;
-      font-size: 15px;
-      font-weight: 600;
-      word-break: break-word;
-    }
-
-    .badge {
-      flex-shrink: 0;
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .4px;
-      border-radius: 999px;
-      padding: 5px 8px;
-      background: rgba(0,0,0,.06);
-    }
-
-    .empty {
-      color: var(--muted);
-      padding: 50px 10px;
-      text-align: center;
-    }
-
-    /* Modal */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.45);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      padding: 20px;
-    }
-
-    .modal-backdrop.open { display: flex; }
-
-    .modal {
-      width: min(420px, 100%);
-      background: white;
-      border-radius: 18px;
-      padding: 22px;
-      box-shadow: 0 25px 80px rgba(0,0,0,.25);
-    }
-
-    .modal h2 {
-      margin: 0 0 7px;
-      font-size: 19px;
-    }
-
-    .modal-task {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 20px;
-      word-break: break-word;
-    }
-
-    .modal-buttons {
-      display: grid;
-      gap: 9px;
-    }
-
-    .modal button {
-      border: 1px solid var(--border);
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 13px;
-      cursor: pointer;
-      font-weight: 700;
       font-size: 14px;
     }
 
-    .modal button:hover { background: #eef1f4; }
-
-    .modal .priority-btn {
-      background: #fff5d6;
-      border-color: #efca63;
+    .task-composer {
+      margin-top: 0;
     }
 
-    .modal .fede-btn {
-      background: #e2f1ff;
-      border-color: #77b4eb;
+    .status {
+      margin-top: 1px;
     }
-
-    .modal .maru-btn {
-      background: #ffe7e7;
-      border-color: #ef8b8b;
-    }
-
-    .modal .delete-btn {
-      color: #c62828;
-      background: #fff;
-      border-color: #efb0b0;
-    }
-
-    .close-btn {
-      margin-top: 13px;
-      width: 100%;
-    }
-
-    @media (max-width: 800px) {
-      .app { display: block; overflow: auto; display: flex; flex-direction:column-reverse ; }
-      .sidebar, .content { width: 100%; }
-      .sidebar { min-width: 0; }
-      .content { min-height: 70vh; padding: 20px; }
-      .status { margin-top: 10px; }
-    }
-  </style>
+  }
+</style>
 </head>
 
 <body>
   <div class="app">
 
     <aside class="sidebar">
-      <div>
-      
-        
-      </div>
+    
 
-      <input
-        id="taskInput"
-        class="task-input"
-        type="text"
-        maxlength="200"
-        placeholder="Nueva tarea..."
-        autocomplete="off"
-      />
+      <div class="task-composer">
+  <input
+    id="taskInput"
+    class="task-input"
+    type="text"
+    maxlength="200"
+    placeholder="Nueva tarea..."
+    autocomplete="off"
+  />
 
-      <button id="addBtn" class="add-btn">+ Agregar tarea</button>
+  <button id="addBtn" class="add-btn">+ Agregar tarea</button>
+</div>
 
       <div class="status">
         <div id="connectionStatus">Conectando...</div>
@@ -526,7 +630,7 @@ const firebaseConfig = {
         } else if (task.completedBy === "maru") {
           badge = `<span class="badge">Maru ✓</span>`;
         }
-        
+
         if(task.priority){
           priority = `<span class="badgeBig">‼️</span>`;
         }
