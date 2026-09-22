@@ -55,6 +55,13 @@
       margin-bottom: 8px;
     }
 
+    .badgeBig {
+       font-size: 28px;
+    padding: 0px;
+    margin: 0px; 
+    position: relative;
+    }
+
     .subtitle {
       color: #9ca8b4;
       font-size: 12px;
@@ -268,7 +275,7 @@
     }
 
     @media (max-width: 800px) {
-      .app { display: block; overflow: auto; }
+      .app { display: block; overflow: auto; display: flex; flex-direction:column-reverse ; }
       .sidebar, .content { width: 100%; }
       .sidebar { min-width: 0; }
       .content { min-height: 70vh; padding: 20px; }
@@ -282,10 +289,8 @@
 
     <aside class="sidebar">
       <div>
-        <div class="logo">✓ Fede & Maru</div>
-        <div class="subtitle">
-          Lista compartida. Los cambios aparecen automáticamente en los dos dispositivos.
-        </div>
+      
+        
       </div>
 
       <input
@@ -309,7 +314,7 @@
     <main class="content">
       <div class="content-header">
         <div>
-          <h1>Tareas</h1>
+          <h1>Tareas ✓ Fede & Maru </h1>
           <div id="counter" class="counter"></div>
         </div>
       </div>
@@ -329,6 +334,7 @@
         <button id="fedeBtn" class="fede-btn">La realizó Fede</button>
         <button id="maruBtn" class="maru-btn">La realizó Maru</button>
         <button id="uncompleteBtn">Marcar como pendiente</button>
+        <button id="diaria">Marcar como diaria</button>
         <button id="deleteBtn" class="delete-btn">Eliminar tarea</button>
       </div>
 
@@ -410,6 +416,7 @@ const firebaseConfig = {
     const fedeBtn = document.getElementById("fedeBtn");
     const maruBtn = document.getElementById("maruBtn");
     const uncompleteBtn = document.getElementById("uncompleteBtn");
+    const diaria = document.getElementById("diaria");
     const deleteBtn = document.getElementById("deleteBtn");
     const closeBtn = document.getElementById("closeBtn");
 
@@ -509,19 +516,27 @@ const firebaseConfig = {
         }
 
         let badge = "";
-
+        let daily = ""
+        let priority = ""
+        if(task.diaria){
+          daily = `<span class="badge">DIARIA</span>`;
+        }
         if (task.completedBy === "fede") {
           badge = `<span class="badge">Fede ✓</span>`;
         } else if (task.completedBy === "maru") {
           badge = `<span class="badge">Maru ✓</span>`;
-        } else if (task.priority) {
-          badge = `<span class="badge">Prioridad</span>`;
+        }
+        
+        if(task.priority){
+          priority = `<span class="badgeBig">‼️</span>`;
         }
 
         element.innerHTML = `
           <div class="task-main">
             <div class="task-title"></div>
+            ${daily}
             ${badge}
+            ${priority}
           </div>
         `;
 
@@ -540,17 +555,30 @@ const firebaseConfig = {
     // ============================================================
 
     function openModal(task) {
-      selectedTask = task;
+  selectedTask = task;
 
-      modalTask.textContent = task.title;
+  modalTask.textContent = task.title;
 
-      priorityBtn.textContent =
-        task.priority
-          ? "Quitar prioridad"
-          : "Marcar como prioridad";
+  priorityBtn.textContent =
+    task.priority
+      ? "Quitar prioridad"
+      : "Marcar como prioridad";
 
-      modalBackdrop.classList.add("open");
-    }
+  deleteBtn.style.display =
+   task.diaria ||  task.type === "daily" || task.type === "daily-template"
+      ? "none"
+      : "block";
+  diaria.style.display =
+   task.diaria ||  task.type === "daily" || task.type === "daily-template"
+      ? "none"
+      : "block";
+  priorityBtn.style.display =
+   task.diaria ||  task.type === "daily" || task.type === "daily-template"
+      ? "none"
+      : "block";
+
+  modalBackdrop.classList.add("open");
+}
 
     function closeModal() {
       selectedTask = null;
@@ -605,6 +633,21 @@ const firebaseConfig = {
       closeModal();
     });
 
+   diaria.addEventListener("click", async () => {
+  if (!selectedTask) return;
+
+  await updateDoc(doc(db, "tasks", selectedTask.id), {
+    diaria: true,
+    type: "daily",
+    priority: true,
+    completedBy: null,
+    completedAt: null,
+    updatedAt: serverTimestamp()
+  });
+
+  closeModal();
+});
+
     uncompleteBtn.addEventListener("click", async () => {
       if (!selectedTask) return;
 
@@ -618,16 +661,19 @@ const firebaseConfig = {
     });
 
     deleteBtn.addEventListener("click", async () => {
-      if (!selectedTask) return;
+  if (!selectedTask) return;  
+  if (selectedTask.diaria || selectedTask.type === "daily" || selectedTask.type === "daily-template") {
+    return;
+  }
 
-      const ok = confirm(`¿Eliminar "${selectedTask.title}"?`);
+  const ok = confirm(`¿Eliminar "${selectedTask.title}"?`);
 
-      if (!ok) return;
+  if (!ok) return;
 
-      await deleteDoc(doc(db, "tasks", selectedTask.id));
+  await deleteDoc(doc(db, "tasks", selectedTask.id));
 
-      closeModal();
-    });
+  closeModal();
+});
 
 
     // ============================================================
@@ -648,6 +694,7 @@ const firebaseConfig = {
         type: "normal",
 
         createdAt: serverTimestamp(),
+        diaria: false,
         updatedAt: serverTimestamp()
       });
 
@@ -708,86 +755,56 @@ const firebaseConfig = {
     // ============================================================
 
     async function reconcileDailyTasks() {
-      if (!tasks.length) return;
+  if (!tasks.length) return;
 
-      const now = getArgentinaDateParts();
-      const today = argentinaDateKey();
+  const today = argentinaDateKey();
 
-      // ----------------------------------------------------------
-      // A) Borrar tareas diarias de días anteriores.
-      // ----------------------------------------------------------
+  // ----------------------------------------------------------
+  // A) Las tareas diarias vuelven a pendiente al comenzar
+  //    un nuevo día.
+  // ----------------------------------------------------------
 
-      const dailyToDelete = tasks.filter(task => {
-        return task.type === "daily" &&
-               task.dailyDate &&
-               task.dailyDate !== today;
-      });
+  for (const task of tasks) {
+    if (
+      task.type === "daily" &&
+      task.completedBy &&
+      task.completedAt?.toDate
+    ) {
+      const completedDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Argentina/Buenos_Aires"
+      }).format(task.completedAt.toDate());
 
-      for (const task of dailyToDelete) {
-        await deleteDoc(doc(db, "tasks", task.id));
-      }
-
-      // ----------------------------------------------------------
-      // B) Borrar tareas normales realizadas.
-      //
-      // Esto representa la regla de "borrar a las 00".
-      // Al entrar después de medianoche, desaparecen.
-      // ----------------------------------------------------------
-
-      // Para saber exactamente cuándo se completaron necesitamos
-      // comparar la fecha argentina del completedAt.
-      for (const task of tasks) {
-        if (
-          task.type === "normal" &&
-          task.completedBy &&
-          task.completedAt?.toDate
-        ) {
-          const completedDate = new Intl.DateTimeFormat("en-CA", {
-            timeZone: "America/Argentina/Buenos_Aires"
-          }).format(task.completedAt.toDate());
-
-          if (completedDate !== today) {
-            await deleteDoc(doc(db, "tasks", task.id));
-          }
-        }
-      }
-
-      // ----------------------------------------------------------
-      // C) Las diarias de hoy se crean después de las 01:00.
-      //
-      // Las plantillas diarias están guardadas como type="daily-template".
-      // ----------------------------------------------------------
-
-      if (now.hour >= 1) {
-        const dailyTemplates = tasks.filter(
-          task => task.type === "daily-template"
-        );
-
-        for (const template of dailyTemplates) {
-          const alreadyExists = tasks.some(
-            task =>
-              task.type === "daily" &&
-              task.templateId === template.id &&
-              task.dailyDate === today
-          );
-
-          if (!alreadyExists) {
-            await addDoc(tasksRef, {
-              title: template.title,
-              priority: template.priority || false,
-              completedBy: null,
-              type: "daily",
-              templateId: template.id,
-              dailyDate: today,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-          }
-        }
+      if (completedDate !== today) {
+        await updateDoc(doc(db, "tasks", task.id), {
+          completedBy: null,
+          completedAt: null,
+          updatedAt: serverTimestamp()
+        });
       }
     }
+  }
 
+  // ----------------------------------------------------------
+  // B) Las tareas normales realizadas se eliminan al
+  //    comenzar un nuevo día.
+  // ----------------------------------------------------------
 
+  for (const task of tasks) {
+    if (
+      task.type === "normal" &&
+      task.completedBy &&
+      task.completedAt?.toDate
+    ) {
+      const completedDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Argentina/Buenos_Aires"
+      }).format(task.completedAt.toDate());
+
+      if (completedDate !== today) {
+        await deleteDoc(doc(db, "tasks", task.id));
+      }
+    }
+  }
+}
     // ============================================================
     // 11. LOGIN ANÓNIMO
     // ============================================================
