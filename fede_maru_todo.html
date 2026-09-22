@@ -16,7 +16,7 @@
     --text: #18212b;
     --muted: #74808c;
     --border: #1B1B1B; 
-    --priority: #fff3cd;
+    --priority: ##7f4ec;
     --priority-border: #f0c75e;
     --fede: #dceeff;
     --fede-border: #4b9bea;
@@ -63,7 +63,7 @@
   }
 
   .badgeBig {
-    font-size: 28px;
+    font-size: 20px;
     padding: 0;
     margin: 0;
     position: relative;
@@ -414,7 +414,7 @@
   }
 
   .badgeBig {
-    font-size: 23px;
+    font-size: 18px;
   }
 
   .empty {
@@ -640,27 +640,39 @@ const firebaseConfig = {
     // ============================================================
 
     function sortTasks(list) {
-      return [...list].sort((a, b) => {
-        // Prioridad primero.
-        if (Boolean(a.priority) !== Boolean(b.priority)) {
-          return a.priority ? -1 : 1;
-        }
+  return [...list].sort((a, b) => {
+    const aDone = Boolean(a.completedBy);
+    const bDone = Boolean(b.completedBy);
 
-        // Las realizadas siempre al final.
-        const aDone = Boolean(a.completedBy);
-        const bDone = Boolean(b.completedBy);
 
-        if (aDone !== bDone) {
-          return aDone ? 1 : -1;
-        }
 
-        // Dentro del mismo grupo: más nueva primero.
-        const aTime = a.createdAt?.seconds || 0;
-        const bTime = b.createdAt?.seconds || 0;
-
-        return bTime - aTime;
-      });
+    // 1. Todas las pendientes primero.
+    if (aDone !== bDone) {
+      return aDone ? 1 : -1;
     }
+
+    // 1.5 Entre las pendientes, las prioritarias primero.
+    if (!aDone && !bDone) {
+  if (Boolean(a.priority) !== Boolean(b.priority)) {
+    return a.priority ? -1 : 1;
+  }
+}
+
+    // 2. Entre las realizadas, las prioritarias primero.
+    if (aDone && bDone) {
+      if (Boolean(a.priority) !== Boolean(b.priority)) {
+        return a.priority ? -1 : 1;
+      }
+    }
+
+    // 3. Dentro de cada grupo: más nueva primero.
+    const aTime = a.createdAt?.seconds || 0;
+    const bTime = b.createdAt?.seconds || 0;
+
+    return bTime - aTime;
+  });
+}
+      
 
     function render() {
       const sorted = sortTasks(tasks);
@@ -698,6 +710,7 @@ const firebaseConfig = {
         let badge = "";
         let daily = ""
         let priority = ""
+        let pending = "";
         if(task.diaria){
           daily = `<span class="badge">DIARIA</span>`;
         }
@@ -706,22 +719,26 @@ const firebaseConfig = {
         } else if (task.completedBy === "maru") {
           badge = `<span class="badge">Maru ✓</span>`;
         }
-
+if (!task.completedBy) {
+  pending = `<span class="pending-icon">🔴</span>`;
+}
         if(task.priority){
           priority = `<span class="badgeBig">‼️</span>`;
         }
 
-        element.innerHTML = `
-          <div class="task-main">
-            <div class="task-title"></div>
-            ${daily}
-            ${badge}
-            ${priority}
-          </div>
-        `;
+    element.innerHTML = `
+  <div class="task-main">
+    <div class="task-title">
+      ${pending}
+      <span class="task-text"></span>
+    </div>
+    ${daily}
+    ${badge}
+    ${priority}
+  </div>
+`;
 
-        // textContent para evitar HTML injection.
-        element.querySelector(".task-title").textContent = task.title;
+element.querySelector(".task-text").textContent = task.title;
 
         element.addEventListener("click", () => openModal(task));
 
