@@ -296,7 +296,28 @@
     background: #e2f1ff;
     border-color: #77b4eb;
   }
+.task.done-fede .task-title,
+  .task.done-maru .task-title {
+  text-decoration: line-through;
+  }
+  .tasks-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
 
+.tasks-divider::before,
+.tasks-divider::after {
+  content: "";
+  height: 1px;
+  background: var(--border);
+  flex: 1;
+}
   .modal .maru-btn {
     background: #ffe7e7;
     border-color: #ef8b8b;
@@ -412,7 +433,7 @@
     font-size: 9px;
     padding: 4px 7px;
   }
-
+  
   .badgeBig {
     font-size: 18px;
   }
@@ -690,8 +711,19 @@ const firebaseConfig = {
         `;
         return;
       }
+      let previousDone = false;
 
-      for (const task of sorted) {
+      for (const task of sorted) { 
+  const isDone = Boolean(task.completedBy);
+
+  if (isDone && !previousDone) {
+    const divider = document.createElement("div");
+    divider.className = "tasks-divider";
+    divider.textContent = "HECHAS";
+    tasksEl.appendChild(divider);
+  }
+
+  previousDone = isDone;
         const element = document.createElement("article");
         element.className = "task";
 
