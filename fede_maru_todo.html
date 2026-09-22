@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fede & Maru — To Do</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --text: #18212b;
+      --muted: #74808c;
+      --border: #e3e7eb;
+      --priority: #fff3cd;
+      --priority-border: #f0c75e;
+      --fede: #dceeff;
+      --fede-border: #4b9bea;
+      --maru: #ffe0e0;
+      --maru-border: #ef6a6a;
+      --shadow: 0 10px 30px rgba(20, 30, 40, .08);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* 15% */
+    .sidebar {
+      width: 15%;
+      min-width: 220px;
+      padding: 24px 18px;
+      background: #111820;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .logo {
+      font-size: 21px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #9ca8b4;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .task-input {
+      width: 100%;
+      border: 0;
+      outline: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      background: #fff;
+      color: #18212b;
+    }
+
+    .add-btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      background: #fff;
+      color: #111820;
+      transition: .15s;
+    }
+
+    .add-btn:hover { transform: translateY(-1px); }
+
+    .status {
+      margin-top: auto;
+      font-size: 11px;
+      color: #9ca8b4;
+      line-height: 1.5;
+    }
+
+    /* 85% */
+    .content {
+      width: 85%;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .counter {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tasks {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      max-width: 1000px;
+    }
+
+    .task {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 5px solid transparent;
+      border-radius: 12px;
+      padding: 15px 17px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(20, 30, 40, .03);
+      transition: transform .12s, box-shadow .12s;
+    }
+
+    .task:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    .task.priority {
+      background: var(--priority);
+      border-color: var(--priority-border);
+      border-left-color: #e2a900;
+    }
+
+    .task.done-fede {
+      background: var(--fede);
+      border-color: var(--fede-border);
+      border-left-color: #1877d2;
+      opacity: .82;
+    }
+
+    .task.done-maru {
+      background: var(--maru);
+      border-color: var(--maru-border);
+      border-left-color: #d83b3b;
+      opacity: .82;
+    }
+
+    .task-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .task-title {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      background: rgba(0,0,0,.06);
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 50px 10px;
+      text-align: center;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: min(420px, 100%);
+      background: white;
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.25);
+    }
+
+    .modal h2 {
+      margin: 0 0 7px;
+      font-size: 19px;
+    }
+
+    .modal-task {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 20px;
+      word-break: break-word;
+    }
+
+    .modal-buttons {
+      display: grid;
+      gap: 9px;
+    }
+
+    .modal button {
+      border: 1px solid var(--border);
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 13px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .modal button:hover { background: #eef1f4; }
+
+    .modal .priority-btn {
+      background: #fff5d6;
+      border-color: #efca63;
+    }
+
+    .modal .fede-btn {
+      background: #e2f1ff;
+      border-color: #77b4eb;
+    }
+
+    .modal .maru-btn {
+      background: #ffe7e7;
+      border-color: #ef8b8b;
+    }
+
+    .modal .delete-btn {
+      color: #c62828;
+      background: #fff;
+      border-color: #efb0b0;
+    }
+
+    .close-btn {
+      margin-top: 13px;
+      width: 100%;
+    }
+
+    @media (max-width: 800px) {
+      .app { display: block; overflow: auto; }
+      .sidebar, .content { width: 100%; }
+      .sidebar { min-width: 0; }
+      .content { min-height: 70vh; padding: 20px; }
+      .status { margin-top: 10px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div>
+        <div class="logo">✓ Fede & Maru</div>
+        <div class="subtitle">
+          Lista compartida. Los cambios aparecen automáticamente en los dos dispositivos.
+        </div>
+      </div>
+
+      <input
+        id="taskInput"
+        class="task-input"
+        type="text"
+        maxlength="200"
+        placeholder="Nueva tarea..."
+        autocomplete="off"
+      />
+
+      <button id="addBtn" class="add-btn">+ Agregar tarea</button>
+
+      <div class="status">
+        <div id="connectionStatus">Conectando...</div>
+        <div>Diarias: se regeneran cada día a la 01:00.</div>
+        <div>Realizadas: se eliminan a las 00:00.</div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="content-header">
+        <div>
+          <h1>Tareas</h1>
+          <div id="counter" class="counter"></div>
+        </div>
+      </div>
+
+      <section id="tasks" class="tasks"></section>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h2>¿Qué hacemos con esta tarea?</h2>
+      <div id="modalTask" class="modal-task"></div>
+
+      <div class="modal-buttons">
+        <button id="priorityBtn" class="priority-btn"></button>
+        <button id="fedeBtn" class="fede-btn">La realizó Fede</button>
+        <button id="maruBtn" class="maru-btn">La realizó Maru</button>
+        <button id="uncompleteBtn">Marcar como pendiente</button>
+        <button id="deleteBtn" class="delete-btn">Eliminar tarea</button>
+      </div>
+
+      <button id="closeBtn" class="close-btn">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Firebase modular SDK por CDN.
+       La documentación oficial permite usar Firebase directamente desde CDN
+       en una página sin build tool. -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+    import {
+      getAuth,
+      signInAnonymously,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      doc,
+      query,
+      orderBy,
+      onSnapshot,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+
+    // ============================================================
+    // 1. PEGAR ACÁ LA CONFIGURACIÓN DE TU PROYECTO FIREBASE
+    // ============================================================
+ 
+  
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCHGZQycg39iiG0pe83uOIKFe4SdWiJsdk",
+  authDomain: "todolist-42ba3.firebaseapp.com",
+  databaseURL: "https://todolist-42ba3-default-rtdb.firebaseio.com",
+  projectId: "todolist-42ba3",
+  storageBucket: "todolist-42ba3.firebasestorage.app",
+  messagingSenderId: "530049953408",
+  appId: "1:530049953408:web:37aa3d609c3502a4948065"
+};
+ 
+
+
+    // ============================================================
+    // 2. FIREBASE
+    // ============================================================
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const tasksRef = collection(db, "tasks");
+
+    let tasks = [];
+    let selectedTask = null;
+
+
+    // ============================================================
+    // 3. ELEMENTOS
+    // ============================================================
+
+    const taskInput = document.getElementById("taskInput");
+    const addBtn = document.getElementById("addBtn");
+    const tasksEl = document.getElementById("tasks");
+    const counterEl = document.getElementById("counter");
+    const connectionStatus = document.getElementById("connectionStatus");
+
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const modalTask = document.getElementById("modalTask");
+    const priorityBtn = document.getElementById("priorityBtn");
+    const fedeBtn = document.getElementById("fedeBtn");
+    const maruBtn = document.getElementById("maruBtn");
+    const uncompleteBtn = document.getElementById("uncompleteBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const closeBtn = document.getElementById("closeBtn");
+
+
+    // ============================================================
+    // 4. FECHA / REGLAS DIARIAS
+    // ============================================================
+
+    function getArgentinaDateParts() {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Argentina/Buenos_Aires",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(new Date());
+
+      const get = type => parts.find(p => p.type === type)?.value;
+
+      return {
+        year: Number(get("year")),
+        month: Number(get("month")),
+        day: Number(get("day")),
+        hour: Number(get("hour"))
+      };
+    }
+
+    function argentinaDateKey() {
+      const d = getArgentinaDateParts();
+      return `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
+    }
+
+    function currentArgentinaHour() {
+      return getArgentinaDateParts().hour;
+    }
+
+
+    // ============================================================
+    // 5. RENDER
+    // ============================================================
+
+    function sortTasks(list) {
+      return [...list].sort((a, b) => {
+        // Prioridad primero.
+        if (Boolean(a.priority) !== Boolean(b.priority)) {
+          return a.priority ? -1 : 1;
+        }
+
+        // Las realizadas siempre al final.
+        const aDone = Boolean(a.completedBy);
+        const bDone = Boolean(b.completedBy);
+
+        if (aDone !== bDone) {
+          return aDone ? 1 : -1;
+        }
+
+        // Dentro del mismo grupo: más nueva primero.
+        const aTime = a.createdAt?.seconds || 0;
+        const bTime = b.createdAt?.seconds || 0;
+
+        return bTime - aTime;
+      });
+    }
+
+    function render() {
+      const sorted = sortTasks(tasks);
+
+      counterEl.textContent =
+        `${sorted.length} ${sorted.length === 1 ? "tarea" : "tareas"}`;
+
+      tasksEl.innerHTML = "";
+
+      if (!sorted.length) {
+        tasksEl.innerHTML = `
+          <div class="empty">
+            No hay tareas. Agregá la primera.
+          </div>
+        `;
+        return;
+      }
+
+      for (const task of sorted) {
+        const element = document.createElement("article");
+        element.className = "task";
+
+        if (task.priority && !task.completedBy) {
+          element.classList.add("priority");
+        }
+
+        if (task.completedBy === "fede") {
+          element.classList.add("done-fede");
+        }
+
+        if (task.completedBy === "maru") {
+          element.classList.add("done-maru");
+        }
+
+        let badge = "";
+
+        if (task.completedBy === "fede") {
+          badge = `<span class="badge">Fede ✓</span>`;
+        } else if (task.completedBy === "maru") {
+          badge = `<span class="badge">Maru ✓</span>`;
+        } else if (task.priority) {
+          badge = `<span class="badge">Prioridad</span>`;
+        }
+
+        element.innerHTML = `
+          <div class="task-main">
+            <div class="task-title"></div>
+            ${badge}
+          </div>
+        `;
+
+        // textContent para evitar HTML injection.
+        element.querySelector(".task-title").textContent = task.title;
+
+        element.addEventListener("click", () => openModal(task));
+
+        tasksEl.appendChild(element);
+      }
+    }
+
+
+    // ============================================================
+    // 6. MODAL
+    // ============================================================
+
+    function openModal(task) {
+      selectedTask = task;
+
+      modalTask.textContent = task.title;
+
+      priorityBtn.textContent =
+        task.priority
+          ? "Quitar prioridad"
+          : "Marcar como prioridad";
+
+      modalBackdrop.classList.add("open");
+    }
+
+    function closeModal() {
+      selectedTask = null;
+      modalBackdrop.classList.remove("open");
+    }
+
+    closeBtn.addEventListener("click", closeModal);
+
+    modalBackdrop.addEventListener("click", event => {
+      if (event.target === modalBackdrop) {
+        closeModal();
+      }
+    });
+
+
+    // ============================================================
+    // 7. ACCIONES
+    // ============================================================
+
+    priorityBtn.addEventListener("click", async () => {
+      if (!selectedTask) return;
+
+      await updateDoc(doc(db, "tasks", selectedTask.id), {
+        priority: !selectedTask.priority,
+        updatedAt: serverTimestamp()
+      });
+
+      closeModal();
+    });
+
+    fedeBtn.addEventListener("click", async () => {
+      if (!selectedTask) return;
+
+      await updateDoc(doc(db, "tasks", selectedTask.id), {
+        completedBy: "fede",
+        completedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      closeModal();
+    });
+
+    maruBtn.addEventListener("click", async () => {
+      if (!selectedTask) return;
+
+      await updateDoc(doc(db, "tasks", selectedTask.id), {
+        completedBy: "maru",
+        completedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      closeModal();
+    });
+
+    uncompleteBtn.addEventListener("click", async () => {
+      if (!selectedTask) return;
+
+      await updateDoc(doc(db, "tasks", selectedTask.id), {
+        completedBy: null,
+        completedAt: null,
+        updatedAt: serverTimestamp()
+      });
+
+      closeModal();
+    });
+
+    deleteBtn.addEventListener("click", async () => {
+      if (!selectedTask) return;
+
+      const ok = confirm(`¿Eliminar "${selectedTask.title}"?`);
+
+      if (!ok) return;
+
+      await deleteDoc(doc(db, "tasks", selectedTask.id));
+
+      closeModal();
+    });
+
+
+    // ============================================================
+    // 8. CREAR TAREA NORMAL
+    // ============================================================
+
+    async function addTask() {
+      const title = taskInput.value.trim();
+
+      if (!title) return;
+
+      await addDoc(tasksRef, {
+        title,
+        priority: false,
+        completedBy: null,
+
+        // Normal = nunca se regenera.
+        type: "normal",
+
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      taskInput.value = "";
+      taskInput.focus();
+    }
+
+    addBtn.addEventListener("click", addTask);
+
+    taskInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        addTask();
+      }
+    });
+
+
+    // ============================================================
+    // 9. SINCRONIZACIÓN EN TIEMPO REAL
+    // ============================================================
+
+    function subscribeTasks() {
+      const q = query(tasksRef, orderBy("createdAt", "desc"));
+
+      onSnapshot(
+        q,
+        snapshot => {
+          tasks = snapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data()
+          }));
+
+          connectionStatus.textContent = "● Sincronizado";
+          render();
+
+          // Ejecutamos reconciliación cada vez que abrimos/recibimos cambios.
+          reconcileDailyTasks();
+        },
+        error => {
+          console.error(error);
+          connectionStatus.textContent = "⚠ Error de conexión";
+        }
+      );
+    }
+
+
+    // ============================================================
+    // 10. REGLAS DE TAREAS DIARIAS
+    //
+    // IMPORTANTE:
+    // Una página HTML no puede ejecutar código a la 01:00 si nadie
+    // tiene abierta la página.
+    //
+    // Por eso esta función deja el estado consistente cuando alguien
+    // entra/está usando la aplicación.
+    //
+    // Para ejecución EXACTA a las 00:00 / 01:00 incluso con la web
+    // cerrada, hace falta un scheduler del backend.
+    // ============================================================
+
+    async function reconcileDailyTasks() {
+      if (!tasks.length) return;
+
+      const now = getArgentinaDateParts();
+      const today = argentinaDateKey();
+
+      // ----------------------------------------------------------
+      // A) Borrar tareas diarias de días anteriores.
+      // ----------------------------------------------------------
+
+      const dailyToDelete = tasks.filter(task => {
+        return task.type === "daily" &&
+               task.dailyDate &&
+               task.dailyDate !== today;
+      });
+
+      for (const task of dailyToDelete) {
+        await deleteDoc(doc(db, "tasks", task.id));
+      }
+
+      // ----------------------------------------------------------
+      // B) Borrar tareas normales realizadas.
+      //
+      // Esto representa la regla de "borrar a las 00".
+      // Al entrar después de medianoche, desaparecen.
+      // ----------------------------------------------------------
+
+      // Para saber exactamente cuándo se completaron necesitamos
+      // comparar la fecha argentina del completedAt.
+      for (const task of tasks) {
+        if (
+          task.type === "normal" &&
+          task.completedBy &&
+          task.completedAt?.toDate
+        ) {
+          const completedDate = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/Argentina/Buenos_Aires"
+          }).format(task.completedAt.toDate());
+
+          if (completedDate !== today) {
+            await deleteDoc(doc(db, "tasks", task.id));
+          }
+        }
+      }
+
+      // ----------------------------------------------------------
+      // C) Las diarias de hoy se crean después de las 01:00.
+      //
+      // Las plantillas diarias están guardadas como type="daily-template".
+      // ----------------------------------------------------------
+
+      if (now.hour >= 1) {
+        const dailyTemplates = tasks.filter(
+          task => task.type === "daily-template"
+        );
+
+        for (const template of dailyTemplates) {
+          const alreadyExists = tasks.some(
+            task =>
+              task.type === "daily" &&
+              task.templateId === template.id &&
+              task.dailyDate === today
+          );
+
+          if (!alreadyExists) {
+            await addDoc(tasksRef, {
+              title: template.title,
+              priority: template.priority || false,
+              completedBy: null,
+              type: "daily",
+              templateId: template.id,
+              dailyDate: today,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          }
+        }
+      }
+    }
+
+
+    // ============================================================
+    // 11. LOGIN ANÓNIMO
+    // ============================================================
+
+    signInAnonymously(auth)
+      .then(() => {
+        connectionStatus.textContent = "● Conectando...";
+      })
+      .catch(error => {
+        console.error(error);
+        connectionStatus.textContent = "⚠ No se pudo autenticar";
+      });
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return;
+
+      subscribeTasks();
+
+      // Intentar mantener las reglas actualizadas mientras la página
+      // permanece abierta.
+      setInterval(reconcileDailyTasks, 60 * 1000);
+    });
+  </script>
+</body>
+</html>
