@@ -343,6 +343,84 @@
             color: #fff;
         }
 
+        .purchase-group-field {
+            margin-top: 14px;
+        }
+
+        .purchase-group-field[hidden] {
+            display: none;
+        }
+
+        .purchase-group-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .purchase-group-field select {
+            width: 100%;
+            border: 1px solid #cbd2d9;
+            border-radius: 10px;
+            padding: 12px;
+            background: #fff;
+            color: var(--text);
+            font: inherit;
+        }
+
+        .purchase-group-field small {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+        }
+
+        .purchase-group {
+            border: 1px solid #d8dde2;
+            border-radius: 12px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .purchase-group summary {
+            padding: 13px 15px;
+            cursor: pointer;
+            font-weight: 800;
+            list-style-position: inside;
+        }
+
+        .purchase-group summary::marker {
+            color: #74808c;
+        }
+
+        .purchase-group-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 10px 10px;
+        }
+
+        .purchase-group-empty {
+            padding: 8px 5px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .add-group-btn {
+            border: 1px solid #cbd2d9;
+            border-radius: 9px;
+            padding: 9px 12px;
+            background: #fff;
+            color: var(--text);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .add-group-btn[hidden] {
+            display: none;
+        }
+
         .task.done-fede .task-title,
         .task.done-maru .task-title {
             text-decoration: line-through;
@@ -501,7 +579,7 @@
 
             .list-nav button {
                 width: auto;
-                background-color: #a70a4b;
+                background-color: #4b4b4b;
                 flex-shrink: 0;
                 padding: 9px 12px;
             }
@@ -553,6 +631,9 @@
                     <h1 id="pageTitle">Tareas ✓ Fede & Maru</h1>
                     <div id="counter" class="counter"></div>
                 </div>
+                <button id="addPurchaseGroupBtn" class="add-group-btn" type="button" hidden>
+                    + Agregar sección
+                </button>
             </div>
 
             <section id="tasks" class="tasks"></section>
@@ -582,9 +663,14 @@
             <h2 id="addModalTitle">Agregar elemento a Tareas</h2>
             <input id="taskInput" class="task-input" type="text" maxlength="200" placeholder="Escribí el elemento..."
                 autocomplete="off" />
+            <div id="purchaseGroupField" class="purchase-group-field" hidden>
+                <label for="purchaseGroupSelect">¿A qué sección de Compras lo agregamos?</label>
+                <select id="purchaseGroupSelect"></select>
+                <small>También aparecerá siempre en TODO.</small>
+            </div>
             <button id="modalAddBtn" class="add-submit-btn" style="margin-right: 8px; padding:20px"
                 type="button">Agregar</button>
-            <button id="closeAddModalBtn" class="close-btn" style="background-color:#f44336"
+            <button id="closeAddModalBtn" class="close-btn" style="color: #030303;background-color:#f44336"
                 type="button">Cancelar</button>
         </div>
     </div>
@@ -628,8 +714,20 @@
         const tasksRef = collection(db, "tasks");
         const listsRef = collection(db, "taskLists");
 
+        const defaultPageLabels = new Map([
+            ["✅Tareas", "Tareas"],
+            ["🛒Compras", "Compras"],
+            ["💸Grandes", "Grandes"],
+            ["👶🏻Joan", "Joan"],
+            ["⛰️Viajes", "Viajes"],
+            ["➕Otros", "Otros"]
+        ]);
+        const canonicalPageName = name => defaultPageLabels.get(name) || name;
+
         let tasks = [];
-        let listNames = ["Tareas", "Compras", "Grandes", "Joan", "Viajes", "Otros"];
+        let listNames = ["✅Tareas", "🛒Compras", "💸Grandes", "👶🏻Joan", "⛰️Viajes", "➕Otros"];
+        let purchaseGroups = [];
+        const expandedPurchaseGroups = new Set(["TODO"]);
         let activeList = "Tareas";
         let selectedTask = null;
 
@@ -640,6 +738,7 @@
         const connectionStatus = document.getElementById("connectionStatus");
         const listNav = document.getElementById("listNav");
         const pageTitle = document.getElementById("pageTitle");
+        const addPurchaseGroupBtn = document.getElementById("addPurchaseGroupBtn");
 
         const modalBackdrop = document.getElementById("modalBackdrop");
         const modalTask = document.getElementById("modalTask");
@@ -647,6 +746,8 @@
         const addModalTitle = document.getElementById("addModalTitle");
         const modalAddBtn = document.getElementById("modalAddBtn");
         const closeAddModalBtn = document.getElementById("closeAddModalBtn");
+        const purchaseGroupField = document.getElementById("purchaseGroupField");
+        const purchaseGroupSelect = document.getElementById("purchaseGroupSelect");
         const priorityBtn = document.getElementById("priorityBtn");
         const fedeBtn = document.getElementById("fedeBtn");
         const maruBtn = document.getElementById("maruBtn");
@@ -712,94 +813,164 @@
             pageTitle.textContent = `${activeList} ✓ `;
             addBtn.textContent = `+ Agregar a ${activeList}`;
             addModalTitle.textContent = `Agregar elemento a ${activeList}`;
+            addPurchaseGroupBtn.hidden = activeList !== "Compras";
+            purchaseGroupField.hidden = activeList !== "Compras";
+            renderPurchaseGroupOptions();
+
+            if (activeList === "Compras") {
+                renderPurchaseGroups(sorted);
+                return;
+            }
 
             if (!sorted.length) {
                 tasksEl.innerHTML = `
         <div class="empty">
-            Cargando...
+            Esta lista está vacía. Agregá el primer elemento.
         </div>
     `;
 
-                setTimeout(() => {
-                    if (!sorted.length) {
-                        tasksEl.innerHTML = `
-                <div class="empty">
-                    Esta lista está vacía. Agregá el primer elemento.
-                </div>
-            `;
-                    }
-                }, 5000);
+                 
 
                 return;
             }
 
+            appendTaskCards(tasksEl, sorted);
+        }
+
+        function createTaskElement(task) {
+            const element = document.createElement("article");
+            element.className = "task";
+
+            if (task.priority && !task.completedBy) {
+                element.classList.add("priority");
+            }
+
+            if (task.completedBy === "fede") {
+                element.classList.add("done-fede");
+            }
+
+            if (task.completedBy === "maru") {
+                element.classList.add("done-maru");
+            }
+
+            let badge = "";
+            let daily = "";
+            let priority = "";
+            let pending = "";
+
+            if (task.diaria) {
+                daily = `<span class="badge">DIARIA</span>`;
+            }
+
+            if (task.completedBy === "fede") {
+                badge = `<span class="badge">Fede ✓</span>`;
+            } else if (task.completedBy === "maru") {
+                badge = `<span class="badge">Maru ✓</span>`;
+            }
+
+            if (!task.completedBy) {
+                pending = `<span class="pending-icon">🔴</span>`;
+            }
+
+            if (task.priority) {
+                priority = `<span class="badgeBig">‼️</span>`;
+            }
+
+            element.innerHTML = `
+                <div class="task-main">
+                    <div class="task-title">
+                        ${pending}
+                        <span class="task-text"></span>
+                    </div>
+                    ${daily}
+                    ${badge}
+                    ${priority}
+                </div>
+            `;
+
+            element.querySelector(".task-text").textContent = task.title;
+            element.addEventListener("click", () => openModal(task));
+            return element;
+        }
+
+        function appendTaskCards(container, taskList) {
             let previousDone = false;
 
-            for (const task of sorted) {
+            for (const task of taskList) {
                 const isDone = Boolean(task.completedBy);
 
                 if (isDone && !previousDone) {
                     const divider = document.createElement("div");
                     divider.className = "tasks-divider";
                     divider.textContent = "HECHAS";
-                    tasksEl.appendChild(divider);
+                    container.appendChild(divider);
                 }
 
                 previousDone = isDone;
+                container.appendChild(createTaskElement(task));
+            }
+        }
 
-                const element = document.createElement("article");
-                element.className = "task";
+        function renderPurchaseGroups(purchaseTasks) {
+            const groupNames = ["TODO", ...purchaseGroups];
 
-                if (task.priority && !task.completedBy) {
-                    element.classList.add("priority");
+            for (const groupName of groupNames) {
+                const groupTasks = groupName === "TODO"
+                    ? purchaseTasks
+                : purchaseTasks.filter(
+                    task => String(task.grupoCompra || "").trim().toUpperCase() === groupName
+                );
+
+                const details = document.createElement("details");
+                details.className = "purchase-group";
+                details.open = expandedPurchaseGroups.has(groupName);
+                details.addEventListener("toggle", () => {
+                    if (details.open) {
+                        expandedPurchaseGroups.add(groupName);
+                    } else {
+                        expandedPurchaseGroups.delete(groupName);
+                    }
+                });
+
+                const summary = document.createElement("summary");
+                summary.textContent = `${groupName} (${groupTasks.length})`;
+                details.appendChild(summary);
+
+                const items = document.createElement("div");
+                items.className = "purchase-group-items";
+
+                if (groupTasks.length) {
+                    appendTaskCards(items, groupTasks);
+                } else {
+                    const empty = document.createElement("div");
+                    empty.className = "purchase-group-empty";
+                    empty.textContent = "No hay elementos en esta sección.";
+                    items.appendChild(empty);
                 }
 
-                if (task.completedBy === "fede") {
-                    element.classList.add("done-fede");
-                }
+                details.appendChild(items);
+                tasksEl.appendChild(details);
+            }
+        }
 
-                if (task.completedBy === "maru") {
-                    element.classList.add("done-maru");
-                }
+        function renderPurchaseGroupOptions() {
+            const selectedGroup = purchaseGroupSelect.value;
+            purchaseGroupSelect.innerHTML = "";
 
-                let badge = "";
-                let daily = "";
-                let priority = "";
-                let pending = "";
+            const onlyTodoOption = document.createElement("option");
+            onlyTodoOption.value = "";
+            onlyTodoOption.textContent = "Solo TODO";
+            purchaseGroupSelect.appendChild(onlyTodoOption);
 
-                if (task.diaria) {
-                    daily = `<span class="badge">DIARIA</span>`;
-                }
+            for (const groupName of purchaseGroups) {
+                const option = document.createElement("option");
+                option.value = groupName;
+                option.textContent = groupName;
+                purchaseGroupSelect.appendChild(option);
+            }
 
-                if (task.completedBy === "fede") {
-                    badge = `<span class="badge">Fede ✓</span>`;
-                } else if (task.completedBy === "maru") {
-                    badge = `<span class="badge">Maru ✓</span>`;
-                }
-
-                if (!task.completedBy) {
-                    pending = `<span class="pending-icon">🔴</span>`;
-                }
-
-                if (task.priority) {
-                    priority = `<span class="badgeBig">‼️</span>`;
-                }
-
-                element.innerHTML = `
-                    <div class="task-main">
-                        <div class="task-title">
-                            ${pending}
-                            <span class="task-text"></span>
-                        </div>
-                        ${daily}
-                        ${badge}
-                        ${priority}
-                    </div>
-                `;
-
-                element.querySelector(".task-text").textContent = task.title;
-                element.addEventListener("click", () => openModal(task));
-                tasksEl.appendChild(element);
+            if (purchaseGroups.includes(selectedGroup)) {
+                purchaseGroupSelect.value = selectedGroup;
             }
         }
 
@@ -835,14 +1006,16 @@
                 const button = document.createElement("button");
                 button.type = "button";
                 button.textContent = name;
-                button.classList.toggle("active", name === activeList);
+                const pageName = canonicalPageName(name);
+                button.classList.toggle("active", pageName === activeList);
                 button.setAttribute(
                     "aria-current",
-                    name === activeList ? "page" : "false"
+                    pageName === activeList ? "page" : "false"
                 );
+                button.style.cssText += "width: 80px; padding:2px; text-align: center; justify-content: center;item-align: center; flex-shrink: 0;";
 
                 button.addEventListener("click", () => {
-                    activeList = name;
+                    activeList = pageName;
                     renderListNav();
                     render();
                 });
@@ -861,11 +1034,56 @@
         function openAddTaskModal() {
             addTaskBackdrop.classList.add("open");
             taskInput.value = "";
+            renderPurchaseGroupOptions();
             taskInput.focus();
         }
 
         function closeAddTaskModal() {
             addTaskBackdrop.classList.remove("open");
+        }
+
+        async function createPurchaseGroup() {
+            const name = prompt("Nombre de la sección de Compras:")?.trim().toUpperCase();
+            if (!name) return;
+
+            if (name.length > 40) {
+                alert("El nombre de la sección no puede superar los 40 caracteres.");
+                return;
+            }
+
+            if (name.toLocaleLowerCase() === "todo") {
+                alert("TODO está reservado para mostrar todas las compras.");
+                return;
+            }
+
+            const existing = purchaseGroups.find(
+                group => group.toUpperCase() === name
+            );
+
+            if (existing) {
+                expandedPurchaseGroups.add(existing);
+                render();
+                return;
+            }
+
+            try {
+                expandedPurchaseGroups.add(name);
+                await addDoc(tasksRef, {
+                    name,
+                    title: name,
+                    tipoDeActividad: "__purchaseGroups",
+                    esSeccionCompra: true,
+                    type: "purchase-group",
+                    priority: false,
+                    completedBy: null,
+                    diaria: false,
+                    createdAt: serverTimestamp()
+                });
+            } catch (error) {
+                expandedPurchaseGroups.delete(name);
+                console.error(error);
+                alert(`No se pudo crear la sección (${error.code || error.message}).`);
+            }
         }
 
         async function createList() {
@@ -879,11 +1097,11 @@
             }
 
             const existing = listNames.find(
-                item => item.toLocaleLowerCase() === name.toLocaleLowerCase()
+                item => canonicalPageName(item).toLocaleLowerCase() === name.toLocaleLowerCase()
             );
 
             if (existing) {
-                activeList = existing;
+                activeList = canonicalPageName(existing);
                 renderListNav();
                 render();
                 return;
@@ -911,6 +1129,7 @@
         });
 
         addBtn.addEventListener("click", openAddTaskModal);
+        addPurchaseGroupBtn.addEventListener("click", createPurchaseGroup);
         modalAddBtn.addEventListener("click", addTask);
         closeAddModalBtn.addEventListener("click", closeAddTaskModal);
 
@@ -1010,7 +1229,7 @@
             const title = taskInput.value.trim();
             if (!title) return;
 
-            await addDoc(tasksRef, {
+            const newTask = {
                 title,
                 priority: false,
                 completedBy: null,
@@ -1019,7 +1238,13 @@
                 createdAt: serverTimestamp(),
                 diaria: false,
                 updatedAt: serverTimestamp()
-            });
+            };
+
+            if (activeList === "Compras") {
+                newTask.grupoCompra = purchaseGroupSelect.value || null;
+            }
+
+            await addDoc(tasksRef, newTask);
 
             taskInput.value = "";
             closeAddTaskModal();
@@ -1035,6 +1260,14 @@
                         id: item.id,
                         ...item.data()
                     }));
+
+                    purchaseGroups = [...new Set(
+                        tasks
+                            .filter(task => task.esSeccionCompra === true)
+                            .map(task => String(task.name || task.title || "").trim().toUpperCase())
+                            .filter(name => name && name !== "TODO")
+                    )];
+                    renderPurchaseGroupOptions();
 
                     snapshot.docs.forEach(item => {
                         if (!item.data().tipoDeActividad) {
@@ -1071,15 +1304,15 @@
                         .filter(name => typeof name === "string" && name.trim())
                         .map(name => name.trim());
 
-                    const defaultNames = ["Tareas", "Compras", "Grandes", "Joan", "Viajes", "Otros"];
+                    const defaultNames = ["✅Tareas", "🛒Compras", "💸Grandes", "👶🏻Joan", "⛰️Viajes", "➕Otros"];
                     const customUniqueNames = customNames.filter(name =>
                         !defaultNames.some(
-                            defaultName => defaultName.toLocaleLowerCase() === name.toLocaleLowerCase()
+                            defaultName => canonicalPageName(defaultName).toLocaleLowerCase() === name.toLocaleLowerCase()
                         )
                     );
                     listNames = [...defaultNames, ...new Set(customUniqueNames)];
 
-                    if (!listNames.includes(activeList)) {
+                    if (!listNames.some(name => canonicalPageName(name) === activeList)) {
                         activeList = "Tareas";
                     }
 
