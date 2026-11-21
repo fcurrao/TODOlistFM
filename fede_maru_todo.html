@@ -715,10 +715,21 @@
 
             if (!sorted.length) {
                 tasksEl.innerHTML = `
-                    <div class="empty">
-                        Esta lista está vacía. Agregá el primer elemento.
-                    </div>
-                `;
+        <div class="empty">
+            Cargando...
+        </div>
+    `;
+
+                setTimeout(() => {
+                    if (!sorted.length) {
+                        tasksEl.innerHTML = `
+                <div class="empty">
+                    Esta lista está vacía. Agregá el primer elemento.
+                </div>
+            `;
+                    }
+                }, 5000);
+
                 return;
             }
 
