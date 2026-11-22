@@ -252,6 +252,19 @@
             opacity: 1;
         }
 
+        .task.done-generic {
+            background: #e1f3df;
+            border-color: #8bc58a;
+            border-left-color: #4a9b4a;
+            opacity: .88;
+        }
+
+        .task.other-status {
+            background: #e5e7eb;
+            border-color: #aeb4bc;
+            border-left-color: #747b84;
+        }
+
         .task-main {
             display: flex;
             align-items: center;
@@ -492,7 +505,7 @@
         }
 
         .purchase-group summary {
-            padding-right: 130px;
+            padding-right: 190px;
         }
 
         .purchase-delete-group {
@@ -507,6 +520,27 @@
             font-size: 11px;
             font-weight: 700;
             cursor: pointer;
+        }
+
+        .purchase-rename-group {
+            position: absolute;
+            top: 7px;
+            right: 70px;
+            border: 1px solid #cbd2d9;
+            border-radius: 7px;
+            padding: 5px 8px;
+            background: #fff;
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .modal .edit-title-btn {
+            width: 100%;
+            margin: 0 0 10px;
+            background: #f2f4f6;
+            border-color: #cbd2d9;
         }
 
         .purchase-move-controls {
@@ -542,6 +576,26 @@
         .modal .purchase-missing-btn {
             background: #ffe1e1;
             border-color: #ee8c8c;
+        }
+
+        .modal .common-done-btn {
+            background: #e1f3df;
+            border-color: #8bc58a;
+        }
+
+        .modal .common-pending-btn {
+            background: #fff;
+            border-color: #cbd2d9;
+        }
+
+        .modal .common-priority-btn {
+            background: #fff5d6;
+            border-color: #efca63;
+        }
+
+        .modal .common-other-btn {
+            background: #e5e7eb;
+            border-color: #aeb4bc;
         }
 
         .modal .purchase-normal-btn {
@@ -782,6 +836,7 @@
         <div class="modal">
             <h2>¿Qué hacemos con este elemento?</h2>
             <div id="modalTask" class="modal-task"></div>
+            <button id="editTitleBtn" class="edit-title-btn" type="button">Editar título</button>
 
             <div id="defaultTaskActions" class="modal-buttons">
                 <button id="priorityBtn" class="priority-btn"></button>
@@ -789,6 +844,13 @@
                 <button id="maruBtn" class="maru-btn">La realizó Maru</button>
                 <button id="uncompleteBtn" class="btnpendiente">Marcar como pendiente</button>
                 <button id="diaria">Marcar como diaria</button>
+            </div>
+
+            <div id="commonTaskActions" class="modal-buttons" hidden>
+                <button id="commonDoneBtn" class="common-done-btn" type="button">Ya hecha</button>
+                <button id="commonPendingBtn" class="common-pending-btn" type="button">Pendiente</button>
+                <button id="commonPriorityBtn" class="common-priority-btn" type="button">Prioridad</button>
+                <button id="commonOtherBtn" class="common-other-btn" type="button">Otro</button>
             </div>
 
             <div id="purchaseTaskActions" class="modal-buttons" hidden>
@@ -911,9 +973,15 @@
         const uncompleteBtn = document.getElementById("uncompleteBtn");
         const diaria = document.getElementById("diaria");
         const deleteBtn = document.getElementById("deleteBtn");
+        const editTitleBtn = document.getElementById("editTitleBtn");
         const closeBtn = document.getElementById("closeBtn");
         const defaultTaskActions = document.getElementById("defaultTaskActions");
+        const commonTaskActions = document.getElementById("commonTaskActions");
         const purchaseTaskActions = document.getElementById("purchaseTaskActions");
+        const commonDoneBtn = document.getElementById("commonDoneBtn");
+        const commonPendingBtn = document.getElementById("commonPendingBtn");
+        const commonPriorityBtn = document.getElementById("commonPriorityBtn");
+        const commonOtherBtn = document.getElementById("commonOtherBtn");
         const markBoughtBtn = document.getElementById("markBoughtBtn");
         const markMissingBtn = document.getElementById("markMissingBtn");
         const markNormalBtn = document.getElementById("markNormalBtn");
@@ -947,8 +1015,8 @@
 
         function sortTasks(list) {
             return [...list].sort((a, b) => {
-                const aDone = Boolean(a.completedBy);
-                const bDone = Boolean(b.completedBy);
+                const aDone = Boolean(a.completedBy) || a.estadoActividad === "hecha";
+                const bDone = Boolean(b.completedBy) || b.estadoActividad === "hecha";
 
                 if (aDone !== bDone) {
                     return aDone ? 1 : -1;
@@ -1011,7 +1079,7 @@
                 : sortTasks(pageTasks);
             const pendingCount = activeList === "Compras"
                 ? sorted.filter(task => purchaseStatus(task) !== "bought").length
-                : sorted.filter(task => !task.completedBy).length;
+                : sorted.filter(task => !task.completedBy && task.estadoActividad !== "hecha").length;
 
             counterEl.textContent = `${pendingCount} elementos por hacer`;
             tasksEl.innerHTML = "";
@@ -1050,6 +1118,12 @@
             if (activeList === "Compras") {
                 element.classList.add(`purchase-${purchaseStatus(task)}`);
             } else {
+                if (task.estadoActividad === "otro") {
+                    element.classList.add("other-status");
+                } else if (task.estadoActividad === "hecha" || task.completedBy === "hecha") {
+                    element.classList.add("done-generic");
+                }
+
                 if (task.priority && !task.completedBy) {
                     element.classList.add("priority");
                 }
@@ -1072,7 +1146,15 @@
                 daily = `<span class="badge">DIARIA</span>`;
             }
 
-            if (activeList === "Compras" && purchaseStatus(task) !== "pending") {
+            if (activeList !== "Tareas" && activeList !== "Compras" && task.estadoActividad) {
+                const commonLabels = {
+                    hecha: "YA HECHA",
+                    pendiente: "PENDIENTE",
+                    prioridad: "PRIORIDAD",
+                    otro: "OTRO"
+                };
+                badge = `<span class="badge">${commonLabels[task.estadoActividad] || ""}</span>`;
+            } else if (activeList === "Compras" && purchaseStatus(task) !== "pending") {
                 badge = `<span class="badge">${purchaseStatus(task) === "bought" ? "COMPRADO" : "FALTANTE"}</span>`;
             } else if (task.completedBy === "fede") {
                 badge = `<span class="badge">Fede ✓</span>`;
@@ -1080,7 +1162,11 @@
                 badge = `<span class="badge">Maru ✓</span>`;
             }
 
-            if (!task.completedBy && !(activeList === "Compras" && purchaseStatus(task) === "bought")) {
+            if (
+                !task.completedBy &&
+                !(activeList === "Compras" && purchaseStatus(task) === "bought") &&
+                !(activeList !== "Tareas" && activeList !== "Compras" && task.estadoActividad && task.estadoActividad !== "pendiente")
+            ) {
                 pending = `<span class="pending-icon">🔴</span>`;
             }
 
@@ -1109,7 +1195,7 @@
             let previousDone = false;
 
             for (const task of taskList) {
-                const isDone = Boolean(task.completedBy);
+                const isDone = Boolean(task.completedBy) || task.estadoActividad === "hecha";
 
                 if (activeList !== "Compras" && isDone && !previousDone) {
                     const divider = document.createElement("div");
@@ -1156,10 +1242,21 @@
                 details.appendChild(summary);
 
                 if (groupName !== "TODO") {
+                    const renameGroupBtn = document.createElement("button");
+                    renameGroupBtn.type = "button";
+                    renameGroupBtn.className = "purchase-rename-group";
+                    renameGroupBtn.textContent = "Renombrar";
+                    renameGroupBtn.addEventListener("click", event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        renamePurchaseGroup(groupName);
+                    });
+                    details.appendChild(renameGroupBtn);
+
                     const deleteGroupBtn = document.createElement("button");
                     deleteGroupBtn.type = "button";
                     deleteGroupBtn.className = "purchase-delete-group";
-                    deleteGroupBtn.textContent = "Borrar sección";
+                    deleteGroupBtn.textContent = "Borrar";
                     deleteGroupBtn.addEventListener("click", event => {
                         event.preventDefault();
                         event.stopPropagation();
@@ -1237,14 +1334,17 @@
             modalTask.textContent = task.title;
             const isPurchase = canonicalPageName(activeList) === "Compras" ||
                 task.tipoDeActividad === "Compras";
+            const isTaskPage = !isPurchase && canonicalPageName(activeList) === "Tareas";
+            const isCommonPage = !isPurchase && !isTaskPage;
             const isPending = task.completedAt == null && task.completedBy == null;
-            console.log(task)
             const isDaily = task.diaria ||
                 task.type === "daily" ||
                 task.type === "daily-template";
 
-            defaultTaskActions.hidden = isPurchase;
-            defaultTaskActions.style.display = isPurchase ? "none" : "grid";
+            defaultTaskActions.hidden = !isTaskPage;
+            defaultTaskActions.style.display = isTaskPage ? "grid" : "none";
+            commonTaskActions.hidden = !isCommonPage;
+            commonTaskActions.style.display = isCommonPage ? "grid" : "none";
             purchaseTaskActions.hidden = !isPurchase;
             purchaseTaskActions.style.display = isPurchase ? "grid" : "none";
             deleteBtn.style.display = "block";
@@ -1257,11 +1357,9 @@
                 ? "Quitar prioridad"
                 : "Marcar como prioridad";
 
-            diaria.style.display = !isPurchase && canonicalPageName(activeList) === "Tareas"
-                ? "block"
-                : "none";
+            diaria.style.display = isTaskPage ? "block" : "none";
             diaria.textContent = isDaily ? "Quitar de tareas diarias" : "Marcar como diaria";
-            priorityBtn.style.display = !isPurchase && !isDaily ? "block" : "none";
+            priorityBtn.style.display = isTaskPage && !isDaily ? "block" : "none";
 
             modalBackdrop.classList.add("open");
         }
@@ -1391,6 +1489,87 @@
             }
         }
 
+        async function renamePurchaseGroup(oldName) {
+            const newName = prompt(`Nuevo nombre para "${oldName}":`, oldName)
+                ?.trim()
+                .toUpperCase();
+            if (!newName || newName === oldName) return;
+
+            if (newName.length > 40) {
+                alert("El nombre de la sección no puede superar los 40 caracteres.");
+                return;
+            }
+
+            if (newName === "TODO") {
+                alert("TODO está reservado para reunir todas las compras.");
+                return;
+            }
+
+            if (purchaseGroups.some(group => group !== oldName && group.toUpperCase() === newName)) {
+                alert("Ya existe una sección con ese nombre.");
+                return;
+            }
+
+            const itemsToRename = tasks.filter(task =>
+                task.tipoDeActividad === "Compras" &&
+                !isPurchaseGroupRecord(task) &&
+                String(task.grupoCompra || "").trim().toUpperCase() === oldName
+            );
+            const sectionRecords = tasks.filter(task =>
+                isPurchaseGroupRecord(task) && purchaseGroupRecordName(task) === oldName
+            );
+
+            try {
+                await Promise.all([
+                    ...itemsToRename.map(task =>
+                        updateDoc(doc(db, "tasks", task.id), {
+                            grupoCompra: newName,
+                            updatedAt: serverTimestamp()
+                        })
+                    ),
+                    ...sectionRecords.map(task =>
+                        updateDoc(doc(db, "tasks", task.id), {
+                            title: task.title?.startsWith(PURCHASE_GROUP_PREFIX)
+                                ? `${PURCHASE_GROUP_PREFIX}${newName}`
+                                : newName,
+                            ...(task.name ? { name: newName } : {}),
+                            updatedAt: serverTimestamp()
+                        })
+                    )
+                ]);
+
+                if (expandedPurchaseGroups.delete(oldName)) {
+                    expandedPurchaseGroups.add(newName);
+                }
+            } catch (error) {
+                console.error(error);
+                alert(`No se pudo renombrar la sección (${error.code || error.message}).`);
+            }
+        }
+
+        async function editTaskTitle() {
+            if (!selectedTask) return;
+
+            const newTitle = prompt("Editar título:", selectedTask.title)?.trim();
+            if (!newTitle || newTitle === selectedTask.title) return;
+
+            if (newTitle.length > 200) {
+                alert("El título no puede superar los 200 caracteres.");
+                return;
+            }
+
+            try {
+                await updateDoc(doc(db, "tasks", selectedTask.id), {
+                    title: newTitle,
+                    updatedAt: serverTimestamp()
+                });
+                closeModal();
+            } catch (error) {
+                console.error(error);
+                alert(`No se pudo editar el título (${error.code || error.message}).`);
+            }
+        }
+
         async function createList() {
             const name = prompt("Nombre de la nueva lista (por ejemplo, Viajes):")?.trim();
 
@@ -1426,6 +1605,7 @@
         }
 
         closeBtn.addEventListener("click", closeModal);
+        editTitleBtn.addEventListener("click", editTaskTitle);
 
         modalBackdrop.addEventListener("click", event => {
             if (event.target === modalBackdrop) {
@@ -1454,6 +1634,27 @@
         markBoughtBtn.addEventListener("click", () => updatePurchaseStatus("comprado"));
         markMissingBtn.addEventListener("click", () => updatePurchaseStatus("faltante"));
         markNormalBtn.addEventListener("click", () => updatePurchaseStatus("pending"));
+
+        async function updateCommonStatus(status) {
+            if (!selectedTask) return;
+            if (canonicalPageName(activeList) === "Tareas" || canonicalPageName(activeList) === "Compras") return;
+
+            const updates = {
+                estadoActividad: status,
+                priority: status === "prioridad",
+                completedBy: null,
+                completedAt: null,
+                updatedAt: serverTimestamp()
+            };
+
+            await updateDoc(doc(db, "tasks", selectedTask.id), updates);
+            closeModal();
+        }
+
+        commonDoneBtn.addEventListener("click", () => updateCommonStatus("hecha"));
+        commonPendingBtn.addEventListener("click", () => updateCommonStatus("pendiente"));
+        commonPriorityBtn.addEventListener("click", () => updateCommonStatus("prioridad"));
+        commonOtherBtn.addEventListener("click", () => updateCommonStatus("otro"));
 
         movePurchaseBtn.addEventListener("click", async () => {
             if (!selectedTask || activeList !== "Compras") return;
