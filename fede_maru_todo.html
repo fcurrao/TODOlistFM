@@ -835,7 +835,7 @@
                 <div>|| Tareas: de 00hs a 01hs se realiza mantenimiento.</div>
 
             </div>
-            <nav id="listNav" class="list-nav" style="margin-top:5px;margin-top: 1px; height: 60px;"
+            <nav id="listNav" class="list-nav" style="margin-top:5px;margin-top: 1px; height: 72px;"
                 aria-label="Listas"></nav>
         </aside>
 
@@ -1459,7 +1459,7 @@
                 if (className) button.className = className;
                 button.classList.toggle("active", pageName === activeList);
                 button.setAttribute("aria-current", pageName === activeList ? "page" : "false");
-                button.style.cssText += "width: 84px; padding:2px; text-align: center; justify-content: center;item-align: center; flex-shrink: 0;";
+                button.style.cssText += "width: 92px; padding:2px; text-align: center; justify-content: center;item-align: center; flex-shrink: 0;";
                 button.addEventListener("click", () => {
                     activeList = pageName;
                     renderListNav();
