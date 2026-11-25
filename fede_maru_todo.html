@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TODO</title>
+    <title>Fede & Maru — To Do</title>
 
     <style>
         * {
@@ -437,15 +437,6 @@
 
         .purchase-group.todo-group > summary::marker {
             color: #68727c;
-        }
-
-        .purchase-group.faltante-group > summary {
-            background: #343a40;
-            color: #fff;
-        }
-
-        .purchase-group.faltante-group > summary::marker {
-            color: #d0d5da;
         }
 
         .purchase-group-items {
@@ -965,6 +956,7 @@
         const defaultPageLabels = new Map([
             ["✅Tareas", "Tareas"],
             ["🛒Compras", "Compras"],
+            ["📋Listas", "Listas"],
             ["💸Grandes", "Grandes"],
             ["👶🏻Joan", "Joan"],
             ["⛰️Viajes", "Viajes"],
@@ -973,9 +965,9 @@
         const canonicalPageName = name => defaultPageLabels.get(name) || name;
 
         let tasks = [];
-        let listNames = ["✅Tareas", "🛒Compras", "💸Grandes", "👶🏻Joan", "⛰️Viajes", "➕Otros"];
+        let listNames = ["✅Tareas", "🛒Compras", "📋Listas", "💸Grandes", "👶🏻Joan", "⛰️Viajes", "➕Otros"];
         let purchaseGroups = [];
-        const expandedPurchaseGroups = new Set(["FALTANTE"]);
+        const expandedPurchaseGroups = new Set();
         let activeList = "Tareas";
         let selectedTask = null;
 
@@ -1070,7 +1062,7 @@
         }
 
         function isPurchasePage() {
-            return activeList === "Compras";
+            return activeList === "Compras" || activeList === "Listas";
         }
 
         function sortPurchaseTasks(list) {
@@ -1125,15 +1117,19 @@
 
         function render() {
             const isPurchaseView = isPurchasePage();
+            const taskListName = isPurchaseView ? "Compras" : activeList;
             const pageTasks = tasks.filter(
                 task =>
-                    (task.tipoDeActividad || "Tareas") === activeList &&
-                    !(isPurchaseView && isPurchaseGroupRecord(task))
+                    (task.tipoDeActividad || "Tareas") === taskListName &&
+                    !(isPurchaseView && isPurchaseGroupRecord(task)) &&
+                    (activeList !== "Compras" || purchaseStatus(task) === "missing")
             );
             const sorted = isPurchaseView
                 ? sortAllPurchaseTasks(pageTasks)
                 : sortTasks(pageTasks);
             const pendingCount = activeList === "Compras"
+                ? sorted.length
+                : activeList === "Listas"
                 ? sorted.filter(task => purchaseStatus(task) !== "bought").length
                 : sorted.filter(task => !task.completedBy && task.estadoActividad !== "hecha").length;
 
@@ -1143,11 +1139,23 @@
             pageTitle.textContent = `${activeList} ✓ `;
             addBtn.textContent = `+ Agregar a ${activeList}`;
             addModalTitle.textContent = `Agregar elemento a ${activeList}`;
-            addPurchaseGroupBtn.hidden = !isPurchaseView;
+            addPurchaseGroupBtn.hidden = activeList !== "Listas";
             purchaseGroupField.hidden = !isPurchaseView;
             renderPurchaseGroupOptions();
 
-            if (isPurchaseView) {
+            if (activeList === "Compras") {
+                if (!sorted.length) {
+                    tasksEl.innerHTML = `
+                        <div class="empty">No hay compras faltantes.</div>
+                    `;
+                    return;
+                }
+
+                appendTaskCards(tasksEl, sorted, true);
+                return;
+            }
+
+            if (activeList === "Listas") {
                 renderPurchaseGroups(sorted);
                 return;
             }
@@ -1280,17 +1288,15 @@
             const sortedGroups = [...purchaseGroups].sort((a, b) =>
                 a.localeCompare(b, "es", { sensitivity: "base" })
             );
-            const groupNames = ["TODO", "FALTANTE", ...sortedGroups];
+            const groupNames = ["TODO", ...sortedGroups];
 
             for (const groupName of groupNames) {
                 const groupTasks = groupName === "TODO"
                     ? purchaseTasks
-                    : groupName === "FALTANTE"
-                        ? purchaseTasks.filter(task => purchaseStatus(task) === "missing")
-                        : purchaseTasks.filter(
-                            task => String(task.grupoCompra || "").trim().toUpperCase() === groupName
-                        );
-                const sortedGroupTasks = groupName === "TODO" || groupName === "FALTANTE"
+                    : purchaseTasks.filter(
+                        task => String(task.grupoCompra || "").trim().toUpperCase() === groupName
+                    );
+                const sortedGroupTasks = groupName === "TODO"
                     ? sortAllPurchaseTasks(groupTasks)
                     : sortPurchaseTasks(groupTasks);
 
@@ -1298,8 +1304,6 @@
                 details.className = "purchase-group";
                 if (groupName === "TODO") {
                     details.classList.add("todo-group");
-                } else if (groupName === "FALTANTE") {
-                    details.classList.add("faltante-group");
                 }
                 details.open = expandedPurchaseGroups.has(groupName);
                 details.addEventListener("toggle", () => {
@@ -1317,7 +1321,7 @@
                 summary.textContent = `${groupName} (${missingCount})`;
                 details.appendChild(summary);
 
-                if (groupName !== "TODO" && groupName !== "FALTANTE") {
+                if (groupName !== "TODO") {
                     const renameGroupBtn = document.createElement("button");
                     renameGroupBtn.type = "button";
                     renameGroupBtn.className = "purchase-rename-group";
@@ -1345,7 +1349,7 @@
                 items.className = "purchase-group-items";
 
                 if (sortedGroupTasks.length) {
-                    appendTaskCards(items, sortedGroupTasks, groupName === "TODO" || groupName === "FALTANTE");
+                    appendTaskCards(items, sortedGroupTasks, groupName === "TODO");
                 } else {
                     const empty = document.createElement("div");
                     empty.className = "purchase-group-empty";
@@ -1838,7 +1842,7 @@
                 title,
                 priority: false,
                 completedBy: null,
-                tipoDeActividad: activeList,
+                tipoDeActividad: isPurchasePage() ? "Compras" : activeList,
                 type: "normal",
                 createdAt: serverTimestamp(),
                 diaria: false,
@@ -1847,6 +1851,10 @@
 
             if (isPurchasePage()) {
                 newTask.grupoCompra = purchaseGroupSelect.value || null;
+            }
+
+            if (activeList === "Compras") {
+                newTask.estadoCompra = "faltante";
             }
 
             await addDoc(tasksRef, newTask);
@@ -1916,7 +1924,7 @@
                         .filter(name => typeof name === "string" && name.trim())
                         .map(name => name.trim());
 
-                    const defaultNames = ["✅Tareas", "🛒Compras", "💸Grandes", "👶🏻Joan", "⛰️Viajes", "➕Otros"];
+                    const defaultNames = ["✅Tareas", "🛒Compras", "📋Listas", "💸Grandes", "👶🏻Joan", "⛰️Viajes", "➕Otros"];
                     const customUniqueNames = customNames.filter(name =>
                         !defaultNames.some(
                             defaultName => canonicalPageName(defaultName).toLocaleLowerCase() === name.toLocaleLowerCase()
