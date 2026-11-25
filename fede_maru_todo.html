@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fede & Maru — To Do</title>
+    <title>TODO</title>
 
     <style>
         * {
@@ -38,7 +38,7 @@
             height: 100vh;
             display: flex;
             overflow: hidden;
-            gap: 38px;
+            gap: 12px;
         }
 
         /* ============================================================
@@ -81,7 +81,7 @@
             margin-top: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 5px;
         }
 
         .task-input {
@@ -116,7 +116,7 @@
             font-size: 11px;
             display: flex;
             flex-direction: row;
-            gap: 10px;
+            gap: 6px;
             color: #9ca8b4;
             line-height: 1.5;
         }
@@ -124,7 +124,7 @@
         .list-nav {
             display: flex;
             flex-direction: column;
-            gap: 7px;
+            gap: 4px;
         }
 
         .list-nav button {
@@ -170,7 +170,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 22px;
+            margin-bottom: 14px;
             flex-shrink: 0;
         }
 
@@ -191,7 +191,7 @@
         .tasks {
             display: flex;
             flex-direction: column;
-            gap: 9px;
+            gap: 5px;
             max-width: 1000px;
             overflow-y: auto;
             overflow-x: hidden;
@@ -206,7 +206,7 @@
             border: 2px solid var(--border);
             border-left: 5px solid;
             border-radius: 12px;
-            padding: 12px 12px;
+            padding: 6px 6px;
             cursor: pointer;
             flex-shrink: 0;
             box-shadow: 0 2px 8px rgba(20, 30, 40, .03);
@@ -268,7 +268,7 @@
         .task-main {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 7px;
         }
 
         .task-title {
@@ -336,7 +336,7 @@
 
         .modal-buttons {
             display: grid;
-            gap: 9px;
+            gap: 6px;
         }
 
         .modal button {
@@ -417,8 +417,9 @@
         }
 
         .purchase-group summary {
-            padding: 13px 15px;
+            padding: 9px 15px;
             cursor: pointer;
+            font-size: 14px;
             font-weight: 800;
             list-style-position: inside;
         }
@@ -427,9 +428,29 @@
             color: #74808c;
         }
 
+        .purchase-group.todo-group > summary {
+            padding-top: 6px;
+            padding-bottom: 6px;
+            background: #e2e5e8;
+            color: #29313a;
+        }
+
+        .purchase-group.todo-group > summary::marker {
+            color: #68727c;
+        }
+
+        .purchase-group.faltante-group > summary {
+            background: #343a40;
+            color: #fff;
+        }
+
+        .purchase-group.faltante-group > summary::marker {
+            color: #d0d5da;
+        }
+
         .purchase-group-items {
             display: block;
-            padding: 0 10px 10px;
+            padding: 0 6px 6px;
             height: auto;
             min-height: 0;
             overflow-y: auto;
@@ -463,7 +484,7 @@
             display: flex;
             flex: 1 1 auto;
             flex-direction: column;
-            gap: 9px;
+            gap: 5px;
             width: 100%;
             height: 100%;
             min-height: 0;
@@ -479,7 +500,7 @@
         }
 
         .purchase-group-items>.task {
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .purchase-group-empty {
@@ -505,7 +526,13 @@
         }
 
         .purchase-group summary {
-            padding-right: 190px;
+            padding-right: 160px;
+        }
+
+        .purchase-section-badge {
+            background: #edf0f2;
+            color: #38424c;
+            font-size: 9px;
         }
 
         .purchase-delete-group {
@@ -545,7 +572,7 @@
 
         .purchase-move-controls {
             display: grid;
-            gap: 7px;
+            gap: 5px;
             margin-top: 3px;
         }
 
@@ -611,7 +638,7 @@
         .tasks-divider {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 7px;
             margin: 8px 0 4px;
             color: var(--muted);
             font-size: 10px;
@@ -679,7 +706,7 @@
             .content {
                 order: 1;
                 width: 100%;
-                height: calc(100dvh - 220px);
+                height: calc(100dvh - 200px);
                 min-height: 0;
                 padding: 12px 16px 8px;
                 overflow: hidden;
@@ -715,19 +742,19 @@
                 overflow-x: hidden;
                 display: flex;
                 flex-direction: column;
-                gap: 7px;
+                gap: 4px;
                 padding-bottom: 4px;
                 -webkit-overflow-scrolling: touch;
             }
 
             .task {
                 flex-shrink: 0;
-                padding: 12px 12px;
+                padding: 6px 6px;
                 border-radius: 10px;
             }
 
             .task-main {
-                gap: 7px;
+                gap: 5px;
             }
 
             .task-title {
@@ -738,6 +765,10 @@
             .badge {
                 font-size: 9px;
                 padding: 4px 7px;
+            }
+
+            .purchase-group summary {
+                font-size: 13px;
             }
 
             .badgeBig {
@@ -757,7 +788,7 @@
                 min-height: 220px;
                 flex-shrink: 0;
                 padding: 12px 16px;
-                gap: 5px;
+                gap: 4px;
             }
 
             .list-nav {
@@ -777,7 +808,7 @@
 
             .task-composer {
                 margin-top: 0;
-                gap: 7px;
+                gap: 4px;
             }
 
             .task-input {
@@ -801,7 +832,7 @@
 
 <body>
     <div class="app">
-        <aside class="sidebar" style="margin-top: 36px; ">
+        <aside class="sidebar">
 
 
             <div class="task-composer">
@@ -854,14 +885,12 @@
             </div>
 
             <div id="purchaseTaskActions" class="modal-buttons" hidden>
-                <button id="markBoughtBtn" class="purchase-bought-btn" type="button">
-                    Marcar comprado
-                </button>
+
                 <button id="markMissingBtn" class="purchase-missing-btn" type="button">
                     Marcar faltante
                 </button>
                 <button id="markNormalBtn" class="purchase-normal-btn" type="button">
-                    Marcar normal
+                    Marcar comprado
                 </button>
                 <div class="purchase-move-controls">
                     <label for="purchaseMoveSelect">Mover a sección</label>
@@ -946,7 +975,7 @@
         let tasks = [];
         let listNames = ["✅Tareas", "🛒Compras", "💸Grandes", "👶🏻Joan", "⛰️Viajes", "➕Otros"];
         let purchaseGroups = [];
-        const expandedPurchaseGroups = new Set(["TODO"]);
+        const expandedPurchaseGroups = new Set(["FALTANTE"]);
         let activeList = "Tareas";
         let selectedTask = null;
 
@@ -982,7 +1011,6 @@
         const commonPendingBtn = document.getElementById("commonPendingBtn");
         const commonPriorityBtn = document.getElementById("commonPriorityBtn");
         const commonOtherBtn = document.getElementById("commonOtherBtn");
-        const markBoughtBtn = document.getElementById("markBoughtBtn");
         const markMissingBtn = document.getElementById("markMissingBtn");
         const markNormalBtn = document.getElementById("markNormalBtn");
         const purchaseMoveSelect = document.getElementById("purchaseMoveSelect");
@@ -1041,10 +1069,37 @@
             return "pending";
         }
 
+        function isPurchasePage() {
+            return activeList === "Compras";
+        }
+
         function sortPurchaseTasks(list) {
             const statusOrder = { missing: 0, pending: 1, bought: 2 };
 
             return [...list].sort((a, b) => {
+                const statusDiff = statusOrder[purchaseStatus(a)] - statusOrder[purchaseStatus(b)];
+                if (statusDiff !== 0) return statusDiff;
+                return String(a.title || "").localeCompare(String(b.title || ""), "es", {
+                    sensitivity: "base"
+                });
+            });
+        }
+
+        function sortAllPurchaseTasks(list) {
+            const statusOrder = { missing: 0, pending: 1, bought: 2 };
+
+            return [...list].sort((a, b) => {
+                const aGroup = String(a.grupoCompra || "").trim();
+                const bGroup = String(b.grupoCompra || "").trim();
+                const groupDiff = aGroup.localeCompare(bGroup, "es", {
+                    sensitivity: "base"
+                });
+                if (groupDiff !== 0) {
+                    if (!aGroup) return 1;
+                    if (!bGroup) return -1;
+                    return groupDiff;
+                }
+
                 const statusDiff = statusOrder[purchaseStatus(a)] - statusOrder[purchaseStatus(b)];
                 if (statusDiff !== 0) return statusDiff;
                 return String(a.title || "").localeCompare(String(b.title || ""), "es", {
@@ -1069,13 +1124,14 @@
         }
 
         function render() {
+            const isPurchaseView = isPurchasePage();
             const pageTasks = tasks.filter(
                 task =>
                     (task.tipoDeActividad || "Tareas") === activeList &&
-                    !(activeList === "Compras" && isPurchaseGroupRecord(task))
+                    !(isPurchaseView && isPurchaseGroupRecord(task))
             );
-            const sorted = activeList === "Compras"
-                ? sortPurchaseTasks(pageTasks)
+            const sorted = isPurchaseView
+                ? sortAllPurchaseTasks(pageTasks)
                 : sortTasks(pageTasks);
             const pendingCount = activeList === "Compras"
                 ? sorted.filter(task => purchaseStatus(task) !== "bought").length
@@ -1083,15 +1139,15 @@
 
             counterEl.textContent = `${pendingCount} elementos por hacer`;
             tasksEl.innerHTML = "";
-            tasksEl.classList.toggle("purchase-page", activeList === "Compras");
+            tasksEl.classList.toggle("purchase-page", isPurchaseView);
             pageTitle.textContent = `${activeList} ✓ `;
             addBtn.textContent = `+ Agregar a ${activeList}`;
             addModalTitle.textContent = `Agregar elemento a ${activeList}`;
-            addPurchaseGroupBtn.hidden = activeList !== "Compras";
-            purchaseGroupField.hidden = activeList !== "Compras";
+            addPurchaseGroupBtn.hidden = !isPurchaseView;
+            purchaseGroupField.hidden = !isPurchaseView;
             renderPurchaseGroupOptions();
 
-            if (activeList === "Compras") {
+            if (isPurchaseView) {
                 renderPurchaseGroups(sorted);
                 return;
             }
@@ -1111,11 +1167,11 @@
             appendTaskCards(tasksEl, sorted);
         }
 
-        function createTaskElement(task) {
+        function createTaskElement(task, showPurchaseGroup = false) {
             const element = document.createElement("article");
             element.className = "task";
 
-            if (activeList === "Compras") {
+            if (isPurchasePage()) {
                 element.classList.add(`purchase-${purchaseStatus(task)}`);
             } else {
                 if (task.estadoActividad === "otro") {
@@ -1146,7 +1202,7 @@
                 daily = `<span class="badge">DIARIA</span>`;
             }
 
-            if (activeList !== "Tareas" && activeList !== "Compras" && task.estadoActividad) {
+            if (activeList !== "Tareas" && !isPurchasePage() && task.estadoActividad) {
                 const commonLabels = {
                     hecha: "YA HECHA",
                     pendiente: "PENDIENTE",
@@ -1154,7 +1210,7 @@
                     otro: "OTRO"
                 };
                 badge = `<span class="badge">${commonLabels[task.estadoActividad] || ""}</span>`;
-            } else if (activeList === "Compras" && purchaseStatus(task) !== "pending") {
+            } else if (isPurchasePage() && purchaseStatus(task) !== "pending") {
                 badge = `<span class="badge">${purchaseStatus(task) === "bought" ? "COMPRADO" : "FALTANTE"}</span>`;
             } else if (task.completedBy === "fede") {
                 badge = `<span class="badge">Fede ✓</span>`;
@@ -1164,13 +1220,13 @@
 
             if (
                 !task.completedBy &&
-                !(activeList === "Compras" && purchaseStatus(task) === "bought") &&
-                !(activeList !== "Tareas" && activeList !== "Compras" && task.estadoActividad && task.estadoActividad !== "pendiente")
+                !(isPurchasePage() && purchaseStatus(task) === "bought") &&
+                !(activeList !== "Tareas" && !isPurchasePage() && task.estadoActividad && task.estadoActividad !== "pendiente")
             ) {
                 pending = `<span class="pending-icon">🔴</span>`;
             }
 
-            if (task.priority && activeList !== "Compras") {
+            if (task.priority && !isPurchasePage()) {
                 priority = `<span class="badgeBig">‼️</span>`;
             }
 
@@ -1187,17 +1243,25 @@
             `;
 
             element.querySelector(".task-text").textContent = task.title;
+
+            if (isPurchasePage() && showPurchaseGroup) {
+                const sectionBadge = document.createElement("span");
+                sectionBadge.className = "badge purchase-section-badge";
+                sectionBadge.textContent = String(task.grupoCompra || "SIN SECCIÓN").trim();
+                element.querySelector(".task-main").appendChild(sectionBadge);
+            }
+
             element.addEventListener("click", () => openModal(task));
             return element;
         }
 
-        function appendTaskCards(container, taskList) {
+        function appendTaskCards(container, taskList, showPurchaseGroup = false) {
             let previousDone = false;
 
             for (const task of taskList) {
                 const isDone = Boolean(task.completedBy) || task.estadoActividad === "hecha";
 
-                if (activeList !== "Compras" && isDone && !previousDone) {
+                if (!isPurchasePage() && isDone && !previousDone) {
                     const divider = document.createElement("div");
                     divider.className = "tasks-divider";
                     divider.textContent = "HECHAS";
@@ -1205,7 +1269,7 @@
                 }
 
                 previousDone = isDone;
-                container.appendChild(createTaskElement(task));
+                container.appendChild(createTaskElement(task, showPurchaseGroup));
             }
         }
 
@@ -1216,18 +1280,27 @@
             const sortedGroups = [...purchaseGroups].sort((a, b) =>
                 a.localeCompare(b, "es", { sensitivity: "base" })
             );
-            const groupNames = ["TODO", ...sortedGroups];
+            const groupNames = ["TODO", "FALTANTE", ...sortedGroups];
 
             for (const groupName of groupNames) {
                 const groupTasks = groupName === "TODO"
                     ? purchaseTasks
-                    : purchaseTasks.filter(
-                        task => String(task.grupoCompra || "").trim().toUpperCase() === groupName
-                    );
-                const sortedGroupTasks = sortPurchaseTasks(groupTasks);
+                    : groupName === "FALTANTE"
+                        ? purchaseTasks.filter(task => purchaseStatus(task) === "missing")
+                        : purchaseTasks.filter(
+                            task => String(task.grupoCompra || "").trim().toUpperCase() === groupName
+                        );
+                const sortedGroupTasks = groupName === "TODO" || groupName === "FALTANTE"
+                    ? sortAllPurchaseTasks(groupTasks)
+                    : sortPurchaseTasks(groupTasks);
 
                 const details = document.createElement("details");
                 details.className = "purchase-group";
+                if (groupName === "TODO") {
+                    details.classList.add("todo-group");
+                } else if (groupName === "FALTANTE") {
+                    details.classList.add("faltante-group");
+                }
                 details.open = expandedPurchaseGroups.has(groupName);
                 details.addEventListener("toggle", () => {
                     if (details.open) {
@@ -1238,10 +1311,13 @@
                 });
 
                 const summary = document.createElement("summary");
-                summary.textContent = `${groupName} (${sortedGroupTasks.length})`;
+                const missingCount = sortedGroupTasks.filter(
+                    task => purchaseStatus(task) === "missing"
+                ).length;
+                summary.textContent = `${groupName} (${missingCount})`;
                 details.appendChild(summary);
 
-                if (groupName !== "TODO") {
+                if (groupName !== "TODO" && groupName !== "FALTANTE") {
                     const renameGroupBtn = document.createElement("button");
                     renameGroupBtn.type = "button";
                     renameGroupBtn.className = "purchase-rename-group";
@@ -1269,7 +1345,7 @@
                 items.className = "purchase-group-items";
 
                 if (sortedGroupTasks.length) {
-                    appendTaskCards(items, sortedGroupTasks);
+                    appendTaskCards(items, sortedGroupTasks, groupName === "TODO" || groupName === "FALTANTE");
                 } else {
                     const empty = document.createElement("div");
                     empty.className = "purchase-group-empty";
@@ -1372,25 +1448,25 @@
         function renderListNav() {
             listNav.innerHTML = "";
 
-            for (const name of listNames) {
+            const appendNavButton = (name, pageName, className = "") => {
                 const button = document.createElement("button");
                 button.type = "button";
                 button.textContent = name;
-                const pageName = canonicalPageName(name);
+                if (className) button.className = className;
                 button.classList.toggle("active", pageName === activeList);
-                button.setAttribute(
-                    "aria-current",
-                    pageName === activeList ? "page" : "false"
-                );
+                button.setAttribute("aria-current", pageName === activeList ? "page" : "false");
                 button.style.cssText += "width: 84px; padding:2px; text-align: center; justify-content: center;item-align: center; flex-shrink: 0;";
-
                 button.addEventListener("click", () => {
                     activeList = pageName;
                     renderListNav();
                     render();
                 });
-
                 listNav.appendChild(button);
+            };
+
+            for (const name of listNames) {
+                const pageName = canonicalPageName(name);
+                appendNavButton(name, pageName);
             }
 
             const addListButton = document.createElement("button");
@@ -1421,8 +1497,8 @@
                 return;
             }
 
-            if (name.toLocaleLowerCase() === "todo") {
-                alert("TODO está reservado para mostrar todas las compras.");
+            if (name === "TODO" || name === "FALTANTE") {
+                alert("TODO y FALTANTE están reservados para las listas automáticas de Compras.");
                 return;
             }
 
@@ -1500,8 +1576,8 @@
                 return;
             }
 
-            if (newName === "TODO") {
-                alert("TODO está reservado para reunir todas las compras.");
+            if (newName === "TODO" || newName === "FALTANTE") {
+                alert("TODO y FALTANTE están reservados para las listas automáticas de Compras.");
                 return;
             }
 
@@ -1619,7 +1695,7 @@
         closeAddModalBtn.addEventListener("click", closeAddTaskModal);
 
         async function updatePurchaseStatus(status) {
-            if (!selectedTask || activeList !== "Compras") return;
+            if (!selectedTask || !isPurchasePage()) return;
 
             await updateDoc(doc(db, "tasks", selectedTask.id), {
                 estadoCompra: status,
@@ -1630,14 +1706,13 @@
 
             closeModal();
         }
-
-        markBoughtBtn.addEventListener("click", () => updatePurchaseStatus("comprado"));
+ 
         markMissingBtn.addEventListener("click", () => updatePurchaseStatus("faltante"));
         markNormalBtn.addEventListener("click", () => updatePurchaseStatus("pending"));
 
         async function updateCommonStatus(status) {
             if (!selectedTask) return;
-            if (canonicalPageName(activeList) === "Tareas" || canonicalPageName(activeList) === "Compras") return;
+            if (canonicalPageName(activeList) === "Tareas" || isPurchasePage()) return;
 
             const updates = {
                 estadoActividad: status,
@@ -1657,7 +1732,7 @@
         commonOtherBtn.addEventListener("click", () => updateCommonStatus("otro"));
 
         movePurchaseBtn.addEventListener("click", async () => {
-            if (!selectedTask || activeList !== "Compras") return;
+            if (!selectedTask || !isPurchasePage()) return;
 
             await updateDoc(doc(db, "tasks", selectedTask.id), {
                 grupoCompra: purchaseMoveSelect.value || null,
@@ -1770,7 +1845,7 @@
                 updatedAt: serverTimestamp()
             };
 
-            if (activeList === "Compras") {
+            if (isPurchasePage()) {
                 newTask.grupoCompra = purchaseGroupSelect.value || null;
             }
 
